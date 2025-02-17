@@ -7,7 +7,7 @@
 ## Base Tech Stack
 ### Backend
 - Java Spring Boot
-- AWS RDS (Database)
+- PostGreSQL (hosted by AWS RDS)
 - JWT
 
 ### Frontend
