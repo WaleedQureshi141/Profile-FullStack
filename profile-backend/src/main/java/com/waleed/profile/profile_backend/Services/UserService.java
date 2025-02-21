@@ -3,6 +3,7 @@ package com.waleed.profile.profile_backend.Services;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.waleed.profile.profile_backend.DTOs.UserInfoDTO;

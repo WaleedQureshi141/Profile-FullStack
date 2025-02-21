@@ -37,4 +37,10 @@ public class User
     // did not use seperate role table since only 2 roles exist
     @Column(name = "role")
     private String role;
+
+    public User(int userId, String username)
+    {
+        this.userId = userId;
+        this.username = username;
+    }
 }
