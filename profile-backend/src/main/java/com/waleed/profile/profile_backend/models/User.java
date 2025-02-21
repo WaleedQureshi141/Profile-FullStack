@@ -6,9 +6,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class User 
@@ -30,6 +34,7 @@ public class User
     @Column(name = "password")
     private String pw;
 
+    // did not use seperate role table since only 2 roles exist
     @Column(name = "role")
     private String role;
 }
