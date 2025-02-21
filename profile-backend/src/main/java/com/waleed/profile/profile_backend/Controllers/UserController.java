@@ -54,6 +54,12 @@ public class UserController
         {
             return new ResponseEntity<>("USER INFORMATION MISSING/INVALID", HttpStatusCode.valueOf(400));
         }
+
+        if (res == "CONFLICT")
+        {
+            return new ResponseEntity<>("USERNAME ALREADY EXISTS", HttpStatus.CONFLICT);
+        }
+        
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
@@ -81,7 +87,7 @@ public class UserController
 
     // PATCH: promote to ADMIN => /{id}
     // ADMIN
-    @PatchMapping("/{id}")
+    @PatchMapping("/promote/{id}")
     public ResponseEntity<String> prmtUser(@PathVariable int id)
     {
         return new ResponseEntity<>(service.promoteUser(id), HttpStatus.OK);

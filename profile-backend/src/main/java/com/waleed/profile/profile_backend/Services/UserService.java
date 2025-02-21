@@ -74,10 +74,15 @@ public class UserService
             || user.getLn().isBlank()
             || user.getUsername().isBlank()
             || user.getPw().isBlank()
-            || user.getPw().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$")
+            || !user.getPw().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$")
         )
         {
             return null;
+        }
+        
+        if (userRepo.findByUsername(user.getUsername()).isPresent())
+        {
+            return "CONFLICT";
         }
 
         user.setRole("USER");
