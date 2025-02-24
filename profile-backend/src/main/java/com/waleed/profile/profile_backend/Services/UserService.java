@@ -3,7 +3,7 @@ package com.waleed.profile.profile_backend.Services;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import com.waleed.profile.profile_backend.DTOs.UserInfoDTO;
@@ -33,9 +33,11 @@ public class UserService
     // recommended DI
     // allows to inject specific dependencies
     private final UserRepo userRepo;
-    public UserService(UserRepo userRepo)
+    private final JwtService jwtService;
+    public UserService(UserRepo userRepo, JwtService jwtService)
     {
         this.userRepo = userRepo;
+        this.jwtService = jwtService;
     }
 
     // GET: find all users => /
@@ -86,10 +88,33 @@ public class UserService
             return "CONFLICT";
         }
 
+        user.setPw(BCrypt.hashpw(user.getPw(), BCrypt.gensalt(12)));
         user.setRole("USER");
 
         userRepo.save(user);
         return "USER REGISTERED";
+    }
+
+    // POST: login => /login
+    // ALL
+    public String loginUser(User user)
+    {
+        if (user.getUsername().isBlank() || user.getPw().isBlank())
+        {
+            return "BAD_REQUEST";
+        }
+
+        if (userRepo.findByUsername(user.getUsername()).isPresent())
+        {
+            User saved = userRepo.findByUsername(user.getUsername()).get();
+            if (BCrypt.checkpw(user.getPw(), saved.getPw()))
+            {
+                return jwtService.generateToken(saved);
+            }
+            return "FORBIDDEN";
+        }
+
+        return "FORBIDDEN";
     }
 
     // DELETE: delete user => /{id}

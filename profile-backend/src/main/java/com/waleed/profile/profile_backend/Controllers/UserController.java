@@ -63,6 +63,25 @@ public class UserController
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+    // POST: login => /login
+    // ALL
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody User user)
+    {
+        String res = service.loginUser(user);
+
+        if (res == "BAD_REQUEST")
+        {
+            return new ResponseEntity<>("MISSING FIELDS", HttpStatus.BAD_REQUEST);
+        }
+        if (res == "FORBIDDEN")
+        {
+            return new ResponseEntity<>("INVALID CREDENTIALS", HttpStatus.FORBIDDEN);
+        }
+
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
     // DELETE: delete user => /{id}
     // USER + ADMIN
     @DeleteMapping("/{id}")
