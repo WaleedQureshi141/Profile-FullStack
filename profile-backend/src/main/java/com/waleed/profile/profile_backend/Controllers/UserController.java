@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,17 +32,21 @@ public class UserController
     // GET: find all users => /
     // ADMIN
     @GetMapping("/")
-    public ResponseEntity<List<UserInfoDTO>> allUsers()
+    public ResponseEntity<List<UserInfoDTO>> allUsers(@RequestHeader("Authorization") String token)
     {
-        return new ResponseEntity<>(service.getAllUsers(), HttpStatus.OK);
+        if (service.getAllUsers(token) == null)
+        {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(service.getAllUsers(token), HttpStatus.OK);
     }
 
-    // GET: find all users => /{id}
-    // ADMIN
-    @GetMapping("/{id}")
-    public ResponseEntity<UserInfoDTO> user(@PathVariable int id)
+    // GET: find user by id => /{id}
+    // USER
+    @GetMapping("/user")
+    public ResponseEntity<UserInfoDTO> user(@RequestHeader("Authorization") String token)
     {
-        return new ResponseEntity<>(service.getUserById(id), HttpStatus.OK);
+        return new ResponseEntity<>(service.getUserById(token), HttpStatus.OK);
     }
 
     // POST: add user => /register
@@ -83,19 +88,19 @@ public class UserController
     }
 
     // DELETE: delete user => /{id}
-    // USER + ADMIN
+    // ADMIN
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> delUser(@PathVariable int id)
+    public ResponseEntity<String> delUser(@RequestHeader("Authorization") String token, @PathVariable int id)
     {
-        return new ResponseEntity<>(service.deleteUser(id), HttpStatus.OK);
+        return new ResponseEntity<>(service.deleteUser(token, id), HttpStatus.OK);
     }
 
     // PATCH: update user info => /{id}
     // USER
-    @PatchMapping("/{id}")
-    public ResponseEntity<String> updUser(@PathVariable int id, @RequestBody UserInfoDTO user)
+    @PatchMapping("/update")
+    public ResponseEntity<String> updUser(@RequestHeader("Authorization") String token, @RequestBody UserInfoDTO user)
     {
-        String res = service.updateUser(id, user);
+        String res = service.updateUser(token, user);
         if (res == null)
         {
             return new ResponseEntity<>("USER INFORMATION MISSING", HttpStatus.BAD_REQUEST);
@@ -107,8 +112,12 @@ public class UserController
     // PATCH: promote to ADMIN => /{id}
     // ADMIN
     @PatchMapping("/promote/{id}")
-    public ResponseEntity<String> prmtUser(@PathVariable int id)
+    public ResponseEntity<String> prmtUser(@RequestHeader("Authorization") String token, @PathVariable int id)
     {
-        return new ResponseEntity<>(service.promoteUser(id), HttpStatus.OK);
+        if (service.promoteUser(token, id) == "FORBIDDEN")
+        {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        return new ResponseEntity<>(service.promoteUser(token, id), HttpStatus.OK);
     }
 }

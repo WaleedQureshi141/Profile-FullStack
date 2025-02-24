@@ -35,6 +35,7 @@ public class JwtService
         return Jwts.builder()
             .claim("userId", user.getUserId())
             .claim("username", user.getUsername())
+            .claim("role", user.getRole())
             .setIssuedAt(new Date(System.currentTimeMillis()))
             .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15))   // 15 mins
             .signWith(getSigningKey())

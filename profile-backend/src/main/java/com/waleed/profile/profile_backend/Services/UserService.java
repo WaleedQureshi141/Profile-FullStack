@@ -10,6 +10,8 @@ import com.waleed.profile.profile_backend.DTOs.UserInfoDTO;
 import com.waleed.profile.profile_backend.models.User;
 import com.waleed.profile.profile_backend.repos.UserRepo;
 
+import ch.qos.logback.core.subst.Token;
+
 @Service
 public class UserService 
 {
@@ -42,8 +44,13 @@ public class UserService
 
     // GET: find all users => /
     // ADMIN
-    public List<UserInfoDTO> getAllUsers()
+    public List<UserInfoDTO> getAllUsers(String token)
     {
+        if (token == null || jwtService.decodeToken(token).getRole() != "ADMIN")
+        {
+            return null;
+        }
+
         List<User> users = userRepo.findAll();
         List<UserInfoDTO> dto = new ArrayList<>();
 
@@ -57,11 +64,11 @@ public class UserService
         return dto;
     }
 
-    // GET: find all users => /{id}
-    // ADMIN
-    public UserInfoDTO getUserById(int id)
+    // GET: find user by id => /{id}
+    // USER
+    public UserInfoDTO getUserById(String token)
     {
-        User user = userRepo.findById(id).get();
+        User user = userRepo.findById(jwtService.decodeToken(token).getUserId()).get();
         UserInfoDTO dto = new UserInfoDTO(
             user.getUserId(), user.getFn(), user.getLn(), user.getUsername(), user.getRole());
 
@@ -118,43 +125,57 @@ public class UserService
     }
 
     // DELETE: delete user => /{id}
-    // USER + ADMIN
-    public String deleteUser(int id)
+    // ADMIN
+    public String deleteUser(String token, int id)
     {
-        userRepo.deleteById(id);
-        return "USER DELETED";
+        if (jwtService.decodeToken(token).getRole() == "ADMIN")
+        {
+            userRepo.deleteById(id);
+            return "USER DELETED";
+        }
+        
+        return "FORBIDDEN";
     }
 
     // PATCH: update user info => /{id}
-    // USER
-    public String updateUser(int id, UserInfoDTO user)
+    // SPECIFIC USER
+    public String updateUser(String token, UserInfoDTO user)
     {
         if (
             user.getFn().isBlank() 
             || user.getLn().isBlank()
         )
         {
-            return null;
+            return "BAD_REQUEST";
         }
 
-        User updUser = userRepo.findById(id).get();
-        updUser.setFn(user.getFn());
-        updUser.setLn(user.getLn());
+        if (userRepo.findById(jwtService.decodeToken(token).getUserId()).isPresent())
+        {
+            User updUser = userRepo.findById(jwtService.decodeToken(token).getUserId()).get();
+            updUser.setFn(user.getFn());
+            updUser.setLn(user.getLn());
 
-        userRepo.save(updUser);
+            userRepo.save(updUser);
 
-        return "USER UPDATED";
+            return "USER UPDATED";
+        }
+        
+        return "FORBIDDEN";
     }
 
     // PATCH: promote to ADMIN => /{id}
     // ADMIN
-    public String promoteUser(int id)
+    public String promoteUser(String token, int id)
     {
-        User user = userRepo.findById(id).get();
-        user.setRole("ADMIN");
+        if (jwtService.decodeToken(token).getRole() == "ADMIN")
+        {
+            User user = userRepo.findById(id).get();
+            user.setRole("ADMIN");
+            userRepo.save(user);
 
-        userRepo.save(user);
+            return "USER PROMOTED";
+        }
 
-        return "USER PROMOTED";
+        return "FORBIDDEN";
     }
 }
